@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confusion Matrix Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: slideDown 0.5s ease-out;
+        }
+        
+        .header-box {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .subtitle {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            color: #4a5568;
+            font-weight: 600;
+        }
+        
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 3px solid transparent;
+            background-image: linear-gradient(white, white), linear-gradient(135deg, #667eea, #764ba2);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        
+        .input-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+        
+        .label-color {
+            font-weight: bold;
+        }
+        
+        .green { color: #48bb78; }
+        .orange { color: #ed8936; }
+        .red { color: #f56565; }
+        .blue { color: #4299e1; }
+        .purple { color: #9f7aea; }
+        
+        input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        }
+        
+        .info-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: #78350f;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            padding: 1rem 2rem;
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+        
+        .results-container {
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .stats-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #fce7f3 100%);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 2px solid #d8b4fe;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-total {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 0.75rem;
+        }
+        
+        .stats-total span {
+            color: #7c3aed;
+            font-size: 1.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #718096;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-top: 0.25rem;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .metric-card.precision { border-color: #63b3ed; background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%); }
+        .metric-card.recall { border-color: #68d391; background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%); }
+        .metric-card.f1score { border-color: #b794f4; background: linear-gradient(135deg, #faf5ff 0%, #fce7f3 100%); }
+        .metric-card.accuracy { border-color: #f687b3; background: linear-gradient(135deg, #fff5f7 0%, #fef3c7 100%); }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .metric-name {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        
+        .formula-box {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .formula-box p {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: #4a5568;
+            margin: 0.5rem 0;
+        }
+        
+        .formula-box strong {
+            color: #2d3748;
+        }
+        
+        .empty-state {
+            height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #faf5ff 0%, #fce7f3 100%);
+            border-radius: 2rem;
+            border: 4px dashed #d8b4fe;
+            text-align: center;
+        }
+        
+        .empty-emoji {
+            font-size: 6rem;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-title {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-text {
+            color: #718096;
+            font-size: 1.125rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-box">
+                <h1>Confusion Matrix Calculator</h1>
+            </div>
+            <p class="subtitle">Calculate Your Model's Performance Metrics</p>
+        </div>
+        <div class="main-card">
+            <div class="grid">
+                <!-- Input Section -->
+                <div>
+                    <div class="section">
+                        <h2 class="section-title"><span>🔢</span> Confusion Matrix</h2>
+                        <div class="info-box">
+                            💡 You can enter individual values OR total positives/negatives. Missing values will be auto-calculated!
+                        </div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label class="input-label">TN <span class="label-color green">(True Negative)</span></label>
+                                <input type="text" id="tn" placeholder="e.g., 1802">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">FP <span class="label-color orange">(False Positive)</span></label>
+                                <input type="text" id="fp" placeholder="e.g., 2220">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">FN <span class="label-color red">(False Negative)</span></label>
+                                <input type="text" id="fn" placeholder="e.g., 240">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">TP <span class="label-color blue">(True Positive)</span></label>
+                                <input type="text" id="tp" placeholder="e.g., 358">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <h2 class="section-title"><span>➕</span> Totals (Optional)</h2>
+                        <div class="info-box">
+                            💡 Enter total positives/negatives to auto-calculate missing values
+                        </div>
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label class="input-label">Total Negatives <span class="label-color purple">(TN + FP)</span></label>
+                                <input type="text" id="totalNegatives" placeholder="e.g., 4022">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Total Positives <span class="label-color purple">(FN + TP)</span></label>
+                                <input type="text" id="totalPositives" placeholder="e.g., 598">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="calculate()">🟰 Calculate</button>
+                        <button class="btn btn-secondary" onclick="clearAll()">🔄 Clear</button>
+                    </div>
+                </div>
+                <!-- Results Section -->
+                <div>
+                    <div id="resultsSection" class="hidden results-container">
+                        <div class="section">
+                            <div class="results-header">
+                                <h2 class="section-title"><span>📈</span> Results</h2>
+                                <button class="copy-btn" onclick="copyResults()">
+                                    <span id="copyText">📋 Copy</span>
+                                </button>
+                            </div>
+                            <div class="stats-box">
+                                <p class="stats-total">📊 Total Records: <span id="totalDisplay"></span></p>
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <span class="stat-label">TN</span>
+                                        <p class="stat-value green" id="tnDisplay"></p>
+                                    </div>
+                                    <div class="stat-card">
+                                        <span class="stat-label">FP</span>
+                                        <p class="stat-value orange" id="fpDisplay"></p>
+                                    </div>
+                                    <div class="stat-card">
+                                        <span class="stat-label">FN</span>
+                                        <p class="stat-value red" id="fnDisplay"></p>
+                                    </div>
+                                    <div class="stat-card">
+                                        <span class="stat-label">TP</span>
+                                        <p class="stat-value blue" id="tpDisplay"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="metricsDisplay"></div>
+                            <div class="section">
+                                <h3 class="section-title" style="font-size: 1.125rem;"><span>📐</span> Formulas</h3>
+                                <div class="formula-box">
+                                    <p><strong>Precision</strong> = TP / (TP + FP)</p>
+                                    <p><strong>Recall</strong> = TP / (TP + FN)</p>
+                                    <p><strong>F1 Score</strong> = 2 × (P × R) / (P + R)</p>
+                                    <p><strong>Accuracy</strong> = (TP + TN) / Total</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="emptyState" class="empty-state">
+                        <div>
+                            <div class="empty-emoji">🎯</div>
+                            <p class="empty-title">Ready to Calculate!</p>
+                            <p class="empty-text">Enter your values and click the button</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentResults = null;
+        
+        function parseValue(value) {
+            if (!value || value.trim() === '') return null;
+            const cleaned = value.replace(/,/g, '');
+            const num = parseFloat(cleaned);
+            return isNaN(num) ? null : num;
+        }
+        
+        function calculate() {
+            let tn = parseValue(document.getElementById('tn').value);
+            let fp = parseValue(document.getElementById('fp').value);
+            let fn = parseValue(document.getElementById('fn').value);
+            let tp = parseValue(document.getElementById('tp').value);
+            const totalNeg = parseValue(document.getElementById('totalNegatives').value);
+            const totalPos = parseValue(document.getElementById('totalPositives').value);
+            
+            // Auto-calculate missing values if totals are provided
+            if (totalNeg !== null) {
+                if (tn !== null && fp === null) {
+                    fp = totalNeg - tn;
+                } else if (fp !== null && tn === null) {
+                    tn = totalNeg - fp;
+                }
+            }
+            
+            if (totalPos !== null) {
+                if (tp !== null && fn === null) {
+                    fn = totalPos - tp;
+                } else if (fn !== null && tp === null) {
+                    tp = totalPos - fn;
+                }
+            }
+            
+            // Validate that we have all four values
+            if (tn === null || fp === null || fn === null || tp === null) {
+                alert('Please provide enough values to calculate all confusion matrix elements.\n\nYou can either:\n• Enter all 4 values (TN, FP, FN, TP), OR\n• Enter 2 individual values + their corresponding totals');
+                return;
+            }
+            
+            // Validate non-negative values
+            if (tn < 0 || fp < 0 || fn < 0 || tp < 0) {
+                alert('All values must be non-negative numbers');
+                return;
+            }
+            
+            const total = tn + fp + fn + tp;
+            const precision = (tp / (tp + fp)) * 100;
+            const recall = (tp / (tp + fn)) * 100;
+            const f1Score = 2 * (precision * recall) / (precision + recall);
+            const accuracy = ((tp + tn) / total) * 100;
+            
+            currentResults = {
+                tn, fp, fn, tp, total,
+                precision: { value: precision },
+                recall: { value: recall },
+                f1Score: { value: f1Score },
+                accuracy: { value: accuracy }
+            };
+            
+            displayResults();
+        }
+        
+        function displayResults() {
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+            
+            document.getElementById('totalDisplay').textContent = currentResults.total;
+            document.getElementById('tnDisplay').textContent = currentResults.tn;
+            document.getElementById('fpDisplay').textContent = currentResults.fp;
+            document.getElementById('fnDisplay').textContent = currentResults.fn;
+            document.getElementById('tpDisplay').textContent = currentResults.tp;
+            
+            const metrics = [
+                { key: 'precision', name: 'Precision', icon: '📏', class: 'precision' },
+                { key: 'recall', name: 'Recall', icon: '🎣', class: 'recall' },
+                { key: 'f1Score', name: 'F1 Score', icon: '⚖️', class: 'f1score' },
+                { key: 'accuracy', name: 'Accuracy', icon: '🎯', class: 'accuracy' }
+            ];
+            
+            const metricsHTML = metrics.map(metric => {
+                const data = currentResults[metric.key];
+                const calculated = data.value.toFixed(2);
+                
+                return `
+                    <div class="metric-card ${metric.class}">
+                        <div class="metric-header">
+                            <h3 class="metric-name"><span>${metric.icon}</span> ${metric.name}</h3>
+                        </div>
+                        <p class="metric-value">${calculated}%</p>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('metricsDisplay').innerHTML = metricsHTML;
+        }
+        
+        function copyResults() {
+            if (!currentResults) return;
+            
+            // Format: Total Records \t TN \t FP \t FN \t TP
+            const text = `${currentResults.total}\t${currentResults.tn}\t${currentResults.fp}\t${currentResults.fn}\t${currentResults.tp}`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                document.getElementById('copyText').textContent = '✅ Copied!';
+                setTimeout(() => {
+                    document.getElementById('copyText').textContent = '📋 Copy';
+                }, 2000);
+            });
+        }
+        
+        function clearAll() {
+            document.getElementById('tn').value = '';
+            document.getElementById('fp').value = '';
+            document.getElementById('fn').value = '';
+            document.getElementById('tp').value = '';
+            document.getElementById('totalNegatives').value = '';
+            document.getElementById('totalPositives').value = '';
+            
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            currentResults = null;
+        }
+    </script>
+</body>
+</html>
